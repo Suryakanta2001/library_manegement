@@ -8,7 +8,7 @@ import { signIn } from "@/auth";
 import { headers } from "next/headers";
 import ratelimit from "@/lib/ratelimit";
 import { redirect } from "next/navigation";
-// import { workflowClient } from "@/lib/workflow";
+import { workflowClient } from "@/lib/workflow";
 import config from "@/lib/config";
 
 export const signInWithCredentials = async (
@@ -47,7 +47,6 @@ export const signUp = async (params: AuthCredentials) => {
 
     if (!success) return redirect("/too-fast");
 
-    //check if user already exists
     const existingUser = await db
         .select()
         .from(users)
@@ -61,13 +60,20 @@ export const signUp = async (params: AuthCredentials) => {
     const hashedPassword = await hash(password, 10);
 
     try {
-        //create user in database
         await db.insert(users).values({
             fullName,
             email,
             universityId,
             password: hashedPassword,
             universityCard,
+        });
+
+        await workflowClient.trigger({
+            url: `${config.env.prodApiEndpoint}/api/workflows/onboarding`,
+            body: {
+                email,
+                fullName,
+            },
         });
 
         await signInWithCredentials({ email, password });

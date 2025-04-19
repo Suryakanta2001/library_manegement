@@ -11,11 +11,31 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
 
   if (!session) redirect("/sign-in");
-  
+
+  after(async () => {
+    if (!session?.user?.id) return;
+
+    //Get the user and see if the last activity date is today
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session?.user?.id))
+      .limit(1);
+
+    if (user[0].lastActivityDate === new Date().toISOString().slice(0, 10))
+      return;
+
+    //If the does exist, update the database with the new session
+    await db
+      .update(users)
+      .set({ lastActivityDate: new Date().toISOString().slice(0, 10) })
+      .where(eq(users.id, session?.user?.id));
+  });
+
   return (
     <main className="root-container">
       <div className="mx-auto max-w-7xl">
-        <Header  session={session}/>
+        <Header session={session} />
 
         <div className="mt-20 pb-20">{children}</div>
       </div>
