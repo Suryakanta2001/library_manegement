@@ -45,6 +45,7 @@ interface Props {
     onFileChange: (filePath: string) => void;
     value?: string;
 }
+
 const FileUpload = ({
     type,
     accept,
@@ -89,7 +90,30 @@ const FileUpload = ({
         });
     };
 
-    const onValidate = (file: File) => { };
+    const onValidate = (file: File) => {
+        if (type === "image") {
+            if (file.size > 20 * 1024 * 1024) {
+                toast({
+                    title: "File size too large",
+                    description: "Please upload a file that is less than 20MB in size",
+                    variant: "destructive",
+                });
+
+                return false;
+            }
+        } else if (type === "video") {
+            if (file.size > 50 * 1024 * 1024) {
+                toast({
+                    title: "File size too large",
+                    description: "Please upload a file that is less than 50MB in size",
+                    variant: "destructive",
+                });
+                return false;
+            }
+        }
+
+        return true;
+    };
 
     return (
         <ImageKitProvider
@@ -102,7 +126,7 @@ const FileUpload = ({
                 onError={onError}
                 onSuccess={onSuccess}
                 useUniqueFileName={true}
-                // validateFile={onValidate}
+                validateFile={onValidate}
                 onUploadStart={() => setProgress(0)}
                 onUploadProgress={({ loaded, total }) => {
                     const percent = Math.round((loaded / total) * 100);
@@ -112,8 +136,8 @@ const FileUpload = ({
                 folder={folder}
                 accept={accept}
                 className="hidden"
-
             />
+
             <button
                 className={cn("upload-btn", styles.button)}
                 onClick={(e) => {
