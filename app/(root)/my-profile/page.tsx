@@ -2,7 +2,17 @@ import React from 'react'
 import { signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 import BookList from '@/components/BookList';
-import { sampleBooks } from '@/constants';
+// import { sampleBooks } from '@/constants';
+import { desc } from 'drizzle-orm';
+import { db } from '@/database/drizzle';
+import { books } from '@/database/schema';
+import BorrowBook from '@/components/BorrowBook';
+
+const latestBooks = (await db
+    .select()
+    .from(books)
+    .limit(10)
+    .orderBy(desc(books.createdAt))) as Book[];
 const Profile = () => {
     return (
         <>
@@ -19,7 +29,8 @@ const Profile = () => {
 
             <BookList
                 title='Borrowed Books'
-                books={sampleBooks}
+                books={latestBooks}
+                containerClassName="mt-28"
             />
         </>
     );

@@ -172,9 +172,10 @@ const FileUpload = ({
                 </div>
             )}
 
-            {file &&
+            {file?.filePath &&
                 (type === "image" ? (
                     <IKImage
+                        key={file.filePath}
                         alt={file.filePath}
                         path={file.filePath}
                         width={500}
